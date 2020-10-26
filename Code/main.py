@@ -40,7 +40,6 @@ if __name__ == "__main__":
         with open(os.path.join('..','data','phase1_training_data.csv'), 'rb') as f:
             data1 = pd.read_csv(f, header = 0)
 
-
         X_all = data[data[:, 0] == "CA"]
         y_can = X_all[:, 3]
         y_can = np.reshape(y_can, (y_can.shape[0], 1))
@@ -96,7 +95,6 @@ if __name__ == "__main__":
         # print(np.shape(X_world_cases))
         # print(np.shape(y_world))
 
-
         model = linear_model.LeastSquares()
         model.fit(X_world_cases, y_world)
         y_pred = model.predict(X_world_cases)
@@ -118,6 +116,49 @@ if __name__ == "__main__":
         w_can_case_100k = calculate_poly_w(X_can_cases_100k, y_can)
         utils.test_and_plot(model,X_can_cases,y_can,Xtest=None,ytest=None,title="Canadian Poly",filename="Canadian_cases_feature_poly.pdf")
         
+        predicted_features = utils.to_future_matrix(data1, 5, 5).to_numpy()
+        can_future_cases = predicted_features[predicted_features[:, 0] == "CA"]
+
+        X_can_future_cases = can_future_cases[:, 2]
+        X_can_future_cases = np.reshape(X_can_future_cases, (X_can_future_cases.shape[0], 1))
+        X_can_future_cases = X_can_future_cases.astype(float)
+
+        y_can_future_cases = can_future_cases[:, 3]
+        y_can_future_cases = np.reshape(y_can_future_cases, (y_can_future_cases.shape[0], 1))
+        y_can_future_cases = y_can_future_cases.astype(float)
+
+
+        can_future_cases_11 = X_can_future_cases[280: , :]
+
+        model11 = model = linear_model.LeastSquaresPoly(p = 5)
+        model11.fit(X_can_future_cases, y_can_future_cases)
+        y_pred = model11.predict(X_can_future_cases)
+        utils.test_and_plot(model11,X_can_future_cases,y_can_future_cases,Xtest=None,ytest=None,title="Canadian Poly Future",filename="Canadian_cases_feature_poly_futureP1.pdf")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         # Finding distance and use that to find the cloest country to canada based on the euclidean distance of their poly model w. 
         X_name_unique = data1.country_id.unique()

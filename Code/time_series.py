@@ -9,7 +9,7 @@ class TimeSeries:
 
     #def get_tseries_X(self, X, window_length=5, preapp_one=True):
     def get_tseries_X(self, X, preapp_one=True):
-        window_length=self.days_window, 
+        window_length=self.days_window
         x_shape = X.shape
         num_row = x_shape[0]
         num_col = x_shape[1]
@@ -20,8 +20,8 @@ class TimeSeries:
 
             for i in range(0, new_dim):
                 new_max[i] = X[i:(i + window_length-1), 0]
-            if (preapp_one == True):
-                new_max = np.hstack((np.ones((new_dim, 1)), new_max))
+            # if (preapp_one == True):
+            #     new_max = np.hstack((np.ones((new_dim, 1)), new_max))
 
             return new_max
 
@@ -50,7 +50,8 @@ class TimeSeries:
 
     def predict(self, X):
         if(self.train_model==None):
-            return X @ self.w
+
+            return X.T @ self.w
         else:
             return self.train_model.predict(X)
 

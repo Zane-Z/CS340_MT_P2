@@ -109,7 +109,7 @@ def to_future_matrix(X, days_predict=5, days_window=5, train_model=None):
 
 def process_ts_ctry(ts_model, country, X, days_predict=5, days_window=5, train_model=None):
     #ctry_new_mt = np.zeros((days_predict, 6)) #could not convert string to float: '09/10/2020'
-    X_sorted = X.sort_values(by=['date'], inplace=True, ascending=True)
+    X_sorted = X.sort_values(by=['date'], inplace=False, ascending=True)
     
     #1 Get country array
     countries = get_countries(country, days_predict)
@@ -119,32 +119,38 @@ def process_ts_ctry(ts_model, country, X, days_predict=5, days_window=5, train_m
     #ctry_new_mt[:,1]=new_dates
     
     #3 Get cases
-    cases_array = X_sorted[:, 2]
+    X_sorted_np = X_sorted.to_numpy()
+    cases_array = X_sorted_np[:, 2]
     cases_array = np.reshape(cases_array, (cases_array.shape[0], 1))
     cases_array = cases_array.astype(float)
     #new_cases = get_new_values(cases_array, days_predict, days_window, train_model)
-    new_cases = get_new_values(ts_model, cases_array, days_predict)
+    # new_cases = get_new_values(ts_model, cases_array, days_predict)
+    new_cases = [100, 100, 100, 100, 100]
     
     #4 Get deaths
-    deaths_array = X_sorted[:, 3]
+    deaths_array = X_sorted_np[:, 3]
     deaths_array = np.reshape(deaths_array, (deaths_array.shape[0], 1))
     deaths_array = deaths_array.astype(float)
     #new_deaths = get_new_values(deaths_array, days_predict, days_window, train_model)
     new_deaths = get_new_values(ts_model, deaths_array, days_predict)
     
     #5 get cases_14_100k
-    ft_100k_array = X_sorted[:, 4]
+    ft_100k_array = X_sorted_np[:, 4]
     ft_100k_array = np.reshape(ft_100k_array, (ft_100k_array.shape[0], 1))
     ft_100k_array = ft_100k_array.astype(float)
     #new_14_100k = get_new_values(ft_100k_array, days_predict, days_window, train_model)
-    new_14_100k = get_new_values(ts_model, ft_100k_array, days_predict)
+    # new_14_100k = get_new_values(ts_model, ft_100k_array, days_predict)
+    new_14_100k = [100, 100, 100, 100, 100]
+
     
     #6 get cases_100k
-    hk_array = X_sorted[:, 5]
+    hk_array = X_sorted_np[:, 5]
     hk_array = np.reshape(hk_array, (hk_array.shape[0], 1))
     hk_array = hk_array.astype(float)
     #new_100k = get_new_values(hk_array, days_predict, days_window, train_model)
-    new_100k = get_new_values(ts_model, hk_array, days_predict)
+    # new_100k = get_new_values(ts_model, hk_array, days_predict)
+    new_100k = [100, 100, 100, 100, 100]
+
     
     #merge the new arrays into dataframe
     ctry_new_df = pd.DataFrame({'country_id': countries, 'date': new_dates, 'cases': new_cases, 'deaths': new_deaths, 'cases_14_100k': new_14_100k, 'cases_100k': new_100k})
@@ -172,6 +178,7 @@ def get_new_dates(date, days_predict=5):
 def get_new_values(ts_model, the_array, days_predict=5):
     X =ts_model.get_tseries_X(the_array, True)
     y =ts_model.get_tseries_Y(the_array)
+
     ts_model.fit(X,y)
     days_window = ts_model.get_window()-1
     a=[]
@@ -188,9 +195,3 @@ def get_new_values(ts_model, the_array, days_predict=5):
             return "not enough length for days_window"
         
     return a
-    
-    #X_to_pred = ts_model.get_newX(the_array, days_predict)
-    #y_hat = ts_model.predict(X_to_pred)
-    
-    #for i in range(1, (days_predict+1)):    
-    #return y_hat
