@@ -2,6 +2,8 @@ import os.path
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+from time_series import TimeSeries
+import pandas as pd
 
 def mode(y):
     """Computes the element with the maximum count
@@ -91,3 +93,22 @@ def test_and_plot(model,X,y,Xtest=None,ytest=None,title=None,filename=None):
         filename = os.path.join("..", "figs", filename)
         print("Saving", filename)
         plt.savefig(filename)
+
+def to_future_matrix(X, days_predict=5, days_window=5, train_model=None):
+    #Note X is the dataframe that follow the format when first read from excel
+    country_id_col = X.loc[:,"country_id"].unique()
+    for country in country_id_col:
+        # print(type(country))
+        # print(country)
+        # <class 'str'> 
+        # UK
+        X_cur = X[X["country_id"]==country].copy(deep=True)
+        process_ts_ctry(X_cur, days_predict, days_window, train_mode)
+        
+    return "Complete"
+
+def process_ts_ctry(X, days_predict=5, days_window=5, train_model=None):
+    ctry_new_df = pd.DataFrame(columns =["country_id", "date", "cases", "deaths", "cases_14_100k", "cases_100k"])
+    ctry_new_mt = np.zeros((days_predict, 6))
+    X_sorted = X.sort_values(by=['date'], inplace=True, ascending=True)
+    new_dates = get_new_dates(X_sorted.iloc[(X_sorted.shape[0]-1), 1], days_predict)
