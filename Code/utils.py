@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from time_series import TimeSeries
 import pandas as pd
+from datetime import datetime, timedelta
 
 def mode(y):
     """Computes the element with the maximum count
@@ -103,12 +104,46 @@ def to_future_matrix(X, days_predict=5, days_window=5, train_model=None):
         # <class 'str'> 
         # UK
         X_cur = X[X["country_id"]==country].copy(deep=True)
-        process_ts_ctry(X_cur, days_predict, days_window, train_mode)
+        process_ts_ctry(country, X_cur, days_predict, days_window, train_mode)
         
     return "Complete"
 
-def process_ts_ctry(X, days_predict=5, days_window=5, train_model=None):
+def process_ts_ctry(country, X, days_predict=5, days_window=5, train_model=None):
     ctry_new_df = pd.DataFrame(columns =["country_id", "date", "cases", "deaths", "cases_14_100k", "cases_100k"])
-    ctry_new_mt = np.zeros((days_predict, 6))
+    #ctry_new_mt = np.zeros((days_predict, 6)) #could not convert string to float: '09/10/2020'
     X_sorted = X.sort_values(by=['date'], inplace=True, ascending=True)
+    
+    #1 Get country array
+    countries = get_countries(country, days_predict)
+    
+    #2 Get the new dates
     new_dates = get_new_dates(X_sorted.iloc[(X_sorted.shape[0]-1), 1], days_predict)
+    #ctry_new_mt[:,1]=new_dates
+    
+    #3 Get cases
+    cases_array = 
+    
+    #4 Get deaths
+    
+    #5 get cases_14_100k
+    
+    #6 get cases_100k
+    
+    return "Complete"
+
+def get_countries(country, days_predict=5):
+    a=[]
+    for i in range(1, (days_predict+1)):
+        a=np.append(a, country)
+    
+    return a
+
+def get_new_dates(date, days_predict=5):
+    date_1 = datetime.strptime(date, "%m/%d/%Y")
+    a=[]
+    for i in range(1, (days_predict+1)):
+        new_date = date_1+ timedelta(days=i)
+        new_date_str = datetime.strftime(new_date, "%m/%d/%Y")
+        a=np.append(a, new_date_str)
+        
+    return a
