@@ -103,7 +103,7 @@ def to_future_matrix(X, days_predict=5, days_window=5, train_model=None):
     country_id_col = X.loc[:,"country_id"].unique()
     for country in country_id_col:
         X_cur = X[X["country_id"]==country].copy(deep=True)
-        ctry_df = process_ts_ctry(ts_model, country, X_cur, days_predict, days_window, train_mode)
+        ctry_df = process_ts_ctry(ts_model, country, X_cur, days_predict, days_window, train_model)
         all_ctry_new_df = pd.concat([all_ctry_new_df, ctry_df], axis=0)
     return all_ctry_new_df
 
