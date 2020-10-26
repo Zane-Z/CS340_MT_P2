@@ -97,15 +97,17 @@ def test_and_plot(model,X,y,Xtest=None,ytest=None,title=None,filename=None):
 
 def to_future_matrix(X, days_predict=5, days_window=5, train_model=None):
     #Note X is the dataframe that follow the format when first read from excel
+    #initialize TS model
+    ts_model = TimeSeries(days_window, train_model)
     all_ctry_new_df = pd.DataFrame(columns =["country_id", "date", "cases", "deaths", "cases_14_100k", "cases_100k"])
     country_id_col = X.loc[:,"country_id"].unique()
     for country in country_id_col:
         X_cur = X[X["country_id"]==country].copy(deep=True)
-        ctry_df = process_ts_ctry(country, X_cur, days_predict, days_window, train_mode)
+        ctry_df = process_ts_ctry(ts_model, country, X_cur, days_predict, days_window, train_mode)
         all_ctry_new_df = pd.concat([all_ctry_new_df, ctry_df], axis=0)
     return all_ctry_new_df
 
-def process_ts_ctry(country, X, days_predict=5, days_window=5, train_model=None):
+def process_ts_ctry(ts_model, country, X, days_predict=5, days_window=5, train_model=None):
     #ctry_new_mt = np.zeros((days_predict, 6)) #could not convert string to float: '09/10/2020'
     X_sorted = X.sort_values(by=['date'], inplace=True, ascending=True)
     
@@ -120,25 +122,29 @@ def process_ts_ctry(country, X, days_predict=5, days_window=5, train_model=None)
     cases_array = X_sorted[:, 2]
     cases_array = np.reshape(cases_array, (cases_array.shape[0], 1))
     cases_array = cases_array.astype(float)
-    new_cases = get_new_values(cases_array, days_predict, days_window, train_model)
+    #new_cases = get_new_values(cases_array, days_predict, days_window, train_model)
+    new_cases = get_new_values(ts_model, cases_array, days_predict)
     
     #4 Get deaths
     deaths_array = X_sorted[:, 3]
     deaths_array = np.reshape(deaths_array, (deaths_array.shape[0], 1))
     deaths_array = deaths_array.astype(float)
-    new_deaths = get_new_values(deaths_array, days_predict, days_window, train_model)
+    #new_deaths = get_new_values(deaths_array, days_predict, days_window, train_model)
+    new_deaths = get_new_values(ts_model, deaths_array, days_predict)
     
     #5 get cases_14_100k
     ft_100k_array = X_sorted[:, 4]
     ft_100k_array = np.reshape(ft_100k_array, (ft_100k_array.shape[0], 1))
     ft_100k_array = ft_100k_array.astype(float)
-    new_14_100k = get_new_values(ft_100k_array, days_predict, days_window, train_model)
+    #new_14_100k = get_new_values(ft_100k_array, days_predict, days_window, train_model)
+    new_14_100k = get_new_values(ts_model, ft_100k_array, days_predict)
     
     #6 get cases_100k
     hk_array = X_sorted[:, 5]
     hk_array = np.reshape(hk_array, (hk_array.shape[0], 1))
     hk_array = hk_array.astype(float)
-    new_100k = get_new_values(hk_array, days_predict, days_window, train_model)
+    #new_100k = get_new_values(hk_array, days_predict, days_window, train_model)
+    new_100k = get_new_values(ts_model, hk_array, days_predict)
     
     #merge the new arrays into dataframe
     ctry_new_df = pd.DataFrame({'country_id': countries, 'date': new_dates, 'cases': new_cases, 'deaths': new_deaths, 'cases_14_100k': new_14_100k, 'cases_100k': new_100k})
@@ -162,8 +168,29 @@ def get_new_dates(date, days_predict=5):
         
     return a
 
-def get_new_values(the_array, days_predict=5, days_window=5, train_model=None):
+#def get_new_values(the_array, days_predict=5, days_window=5, train_model=None):
+def get_new_values(ts_model, the_array, days_predict=5):
+    X =ts_model.get_tseries_X(the_array, True)
+    y =ts_model.get_tseries_Y(the_array)
+    ts_model.fit(X,y)
+    days_window = ts_model.get_window()-1
     a=[]
+    l=len(the_array)
+    
     for i in range(1, (days_predict+1)):
+        if(l>days_window):
+            cur_X = the_array[l-days_window:,]
+            new_val = ts_model.predict(cur_X)
+            a=np.append(a, new_val)
+            the_array=np.append(the_array, new_val)
+            l=l+1 #didn't use l=len(the_array) to save resourse. 
+        else:
+            return "not enough length for days_window"
         
     return a
+    
+    #X_to_pred = ts_model.get_newX(the_array, days_predict)
+    #y_hat = ts_model.predict(X_to_pred)
+    
+    #for i in range(1, (days_predict+1)):    
+    #return y_hat
